@@ -14,4 +14,13 @@
             app:summary="@string/update_time_summary"
             app:useSimpleSummaryProvider="true" />
     </PreferenceCategory>
+    <ListPreference
+        android:defaultValue="FF6600FF"
+        android:entries="@array/color_name"
+        android:entryValues="@array/color_name"
+        android:key="update_color_key"
+        android:title="@string/update_color"
+        app:icon="@drawable/color_change"
+        app:summary="@string/update_color_summary"
+        app:useSimpleSummaryProvider="true" />
 </PreferenceScreen>

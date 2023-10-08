@@ -1,11 +1,13 @@
 <resources>
-    <string name="app_name">TaigerGPSTracker</string>
+    <string name="app_name">TigerGPSTracker</string>
     <string name="home">home</string>
     <string name="tracks">tracks</string>
     <string name="settings">settings</string>
     <string name="location">Location</string>
     <string name="update_time">Update time</string>
+    <string name="update_color">Color track</string>
     <string name="update_time_summary">location update time</string>
+    <string name="update_color_summary">Choose Color</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
