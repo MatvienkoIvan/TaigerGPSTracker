@@ -2,7 +2,7 @@ package com.matvienko.taigergpstracker
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import com.matvienko.taigergpstracker.Fragment.MainFragment
+import com.matvienko.taigergpstracker.Fragment.FragmentBlank
 import com.matvienko.taigergpstracker.Fragment.SettingsFragment
 import com.matvienko.taigergpstracker.Fragment.TrackFragment
 import com.matvienko.taigergpstracker.databinding.ActivityMainBinding
@@ -17,17 +17,16 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         onButtonsNavClicks()
-        openFragment(MainFragment.newInstance())
+        openFragment(FragmentBlank.newInstance())
 
     }
 
-
-    private fun onButtonsNavClicks(){
+    private fun onButtonsNavClicks() {
         binding.Bnab.setOnItemSelectedListener {
-            when(it.itemId){
-                R.id.home  -> openFragment(MainFragment.newInstance())
-                R.id.tracks  ->openFragment(TrackFragment.newInstance())
-                R.id.settings  ->openFragment(SettingsFragment())
+            when (it.itemId) {
+                R.id.home -> openFragment(FragmentBlank.newInstance())
+                R.id.tracks -> openFragment(TrackFragment.newInstance())
+                R.id.settings -> openFragment(SettingsFragment())
             }
             true
         }

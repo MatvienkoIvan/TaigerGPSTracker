@@ -8,6 +8,6 @@
     <string name="update_color">Color track</string>
     <string name="update_time_summary">location update time</string>
     <string name="update_color_summary">Choose Color</string>
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="location_disabled_massage">Do you want enable GPS?</string>
 </resources>

@@ -1,9 +1,10 @@
 package com.matvienko.taigergpstracker.utils
 
+import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import com.matvienko.taigergpstracker.Fragment.TrackFragment
 import com.matvienko.taigergpstracker.R
 
 fun Fragment.openFragment(f: Fragment) {
@@ -14,6 +15,10 @@ fun Fragment.openFragment(f: Fragment) {
 }
 
 fun AppCompatActivity.openFragment(f: Fragment) {
+    if (supportFragmentManager.fragments.isNotEmpty()) {
+        if (supportFragmentManager.fragments[0].javaClass == f.javaClass)
+            return
+    }
     supportFragmentManager
         .beginTransaction()
         .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
@@ -27,4 +32,11 @@ fun Fragment.showToast(s: String) {
 fun AppCompatActivity.showToast(s: String) {
     Toast.makeText(this, s, Toast.LENGTH_SHORT).show()
 }
+fun Fragment.checkPermission(p: String): Boolean {
+    return  when(PackageManager.PERMISSION_GRANTED) {
+        ContextCompat.checkSelfPermission(activity as AppCompatActivity, p) -> true
+        else -> false
+    }
+}
+
 

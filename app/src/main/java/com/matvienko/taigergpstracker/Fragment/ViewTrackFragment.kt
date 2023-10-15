@@ -1,13 +1,10 @@
 package com.matvienko.taigergpstracker.Fragment
 
-import android.os.Binder
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.matvienko.taigergpstracker.R
-import com.matvienko.taigergpstracker.databinding.FragmentBlankBinding
 import com.matvienko.taigergpstracker.databinding.ViewTrackBinding
 
 
