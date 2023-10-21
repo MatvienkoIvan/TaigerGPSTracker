@@ -1,12 +1,16 @@
 package com.matvienko.taigergpstracker.Fragment
 
 import android.Manifest
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.graphics.Color
 import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -15,9 +19,14 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.MutableLiveData
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.transition.Transition.MatchOrder
+import com.matvienko.taigergpstracker.MainViewModel
 import com.matvienko.taigergpstracker.R
 import com.matvienko.taigergpstracker.databinding.FragmentMainBinding
+import com.matvienko.taigergpstracker.location.LocationModel
 import com.matvienko.taigergpstracker.location.LocationService
 import com.matvienko.taigergpstracker.utils.DialogManager
 import com.matvienko.taigergpstracker.utils.TimeUtils
@@ -25,6 +34,9 @@ import com.matvienko.taigergpstracker.utils.checkPermission
 import com.matvienko.taigergpstracker.utils.showToast
 import org.osmdroid.config.Configuration
 import org.osmdroid.library.BuildConfig
+import org.osmdroid.util.Distance
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.overlay.Polyline
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 import java.util.Timer
@@ -32,12 +44,14 @@ import java.util.TimerTask
 
 
 class FragmentBlank : Fragment() {
+    private var firstStart = true
+    private var pl: Polyline? = null
     private var isServiceRunning = false
     private var timer: Timer? = null
     private var startTime = 0L
-    private val timeData = MutableLiveData <String>()
     private lateinit var pLauncher: ActivityResultLauncher<Array<String>>
     private lateinit var binding: FragmentMainBinding
+    private val model: MainViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -54,13 +68,14 @@ class FragmentBlank : Fragment() {
         setOnClicks()
         checkServiceState()
         updateTime()
+        registerLocReceiver()
+        locationUpdates()
 
     }
     private fun setOnClicks () = with (binding){
         val listener = onClicks()
         fPlay.setOnClickListener(listener)
     }
-
 
     private fun onClicks(): View.OnClickListener {
         return View.OnClickListener {
@@ -70,9 +85,21 @@ class FragmentBlank : Fragment() {
             }
         }
     }
+    private fun locationUpdates() = with(binding){
+        model.locationUpdates.observe(viewLifecycleOwner){
+            val distance = "Distance: ${String.format("%.1f", it.distance)} m"
+            val velocity = "Velocity: ${String.format("%.1f", 3.6f* it.velocity)} km/h"
+            val aVelocity = " Average Velocity: ${getAverageSpeed(it.distance)} km/h"
+            tvDistance.text = distance
+            tvVelocity.text = velocity
+            tvAverageSpeed.text = aVelocity
+            updatePolyLine(it.geoPointsList)
+
+        }
+    }
 
     private fun updateTime(){
-        timeData.observe(viewLifecycleOwner){
+        model.timeData.observe(viewLifecycleOwner){
             binding.tvTime.text = it //tvTime - это textView который мы добавили на слое.
         }
     }
@@ -84,12 +111,15 @@ class FragmentBlank : Fragment() {
         timer?.schedule(object :  TimerTask() {
             override fun run() {
               activity?.runOnUiThread {
-                  timeData.value = getCurrentTime()
+                  model.timeData.value = getCurrentTime()
               }
             }
 
-        }, 1000,1000)
+        }, 1,1)
     }
+private fun getAverageSpeed (distance: Float) :String {
+    return String.format("%.1f", 3.6f * ((distance / (System.currentTimeMillis() - startTime) / 1000.0f)))
+}
 
 private fun getCurrentTime():String {
     return "Time: ${TimeUtils.getTime(System.currentTimeMillis()-startTime)}"
@@ -141,8 +171,9 @@ private fun getCurrentTime():String {
     }
 
     private fun initOsm() = with(binding) {
+        pl = Polyline()
+        pl?.outlinePaint?.color = Color.BLUE
         map.controller.setZoom(20.0)
-
         val mLocProvider = GpsMyLocationProvider(activity)
         val mLocOverlay = MyLocationNewOverlay(mLocProvider, map)
         mLocOverlay.enableMyLocation()
@@ -150,6 +181,7 @@ private fun getCurrentTime():String {
         mLocOverlay.runOnFirstFix {
             map.overlays.clear()
             map.overlays.add(mLocOverlay)
+            map.overlays.add(pl)
         }
     }
     private fun registerPermission() {
@@ -221,6 +253,46 @@ private fun checkLocationEnabled(){
     }
 
 }
+    private val receiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, i: Intent?) {
+            if (i?.action == LocationService.LOC_MODEL_INTENT) {
+                val locModel =
+                    i.getSerializableExtra(LocationService.LOC_MODEL_INTENT) as LocationModel
+//                Log.d("MyLog","MF distance: ${locModel.distance}")
+                model.locationUpdates.value = locModel
+            }
+        }
+    }
+    private fun registerLocReceiver (){
+        val locFilter = IntentFilter (LocationService.LOC_MODEL_INTENT)
+        LocalBroadcastManager.getInstance(activity as AppCompatActivity)
+            .registerReceiver(receiver, locFilter)
+    }
+
+    private fun addPoint (list: List <GeoPoint>){
+        pl?.addPoint(list[list.size - 1])
+    }
+
+    private fun fillPolyLine (list: List<GeoPoint>){
+        list.forEach {
+            pl?.addPoint(it)
+        }
+    }
+
+private fun updatePolyLine (list: List<GeoPoint>) {
+    if (list.size > 1 && firstStart){
+        fillPolyLine(list)
+        firstStart = false
+    } else {
+        addPoint(list)
+    }
+}
+
+    override fun onDetach() {
+        super.onDetach()
+        LocalBroadcastManager.getInstance(activity as AppCompatActivity)
+            .unregisterReceiver(receiver)
+    }
 
     companion object {
 
