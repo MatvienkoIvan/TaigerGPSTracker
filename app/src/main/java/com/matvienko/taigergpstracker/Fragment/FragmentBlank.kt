@@ -20,9 +20,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.MutableLiveData
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import androidx.transition.Transition.MatchOrder
+import com.matvienko.taigergpstracker.DB.TrackItem
 import com.matvienko.taigergpstracker.MainViewModel
 import com.matvienko.taigergpstracker.R
 import com.matvienko.taigergpstracker.databinding.FragmentMainBinding
@@ -34,7 +33,6 @@ import com.matvienko.taigergpstracker.utils.checkPermission
 import com.matvienko.taigergpstracker.utils.showToast
 import org.osmdroid.config.Configuration
 import org.osmdroid.library.BuildConfig
-import org.osmdroid.util.Distance
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.overlay.Polyline
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
@@ -44,6 +42,7 @@ import java.util.TimerTask
 
 
 class FragmentBlank : Fragment() {
+    private var locationModel: LocationModel? = null
     private var firstStart = true
     private var pl: Polyline? = null
     private var isServiceRunning = false
@@ -93,8 +92,11 @@ class FragmentBlank : Fragment() {
             tvDistance.text = distance
             tvVelocity.text = velocity
             tvAverageSpeed.text = aVelocity
-            updatePolyLine(it.geoPointsList)
+            locationModel = it
+//            trackItem = TrackItem(
 
+//            )
+            updatePolyLine(it.geoPointsList)
         }
     }
 
@@ -124,6 +126,15 @@ private fun getAverageSpeed (distance: Float) :String {
 private fun getCurrentTime():String {
     return "Time: ${TimeUtils.getTime(System.currentTimeMillis()-startTime)}"
 }
+    private fun geoPointsToString (list: List <GeoPoint>) :String {
+
+        val sb = StringBuilder()
+        list.forEach {
+            sb.append(it.latitude).append(",").append(it.longitude).append("/") // sb.append ("${it.latitude},${it.longitude}/"))
+        }
+            Log.d("MyLog", "points: $sb")
+        return sb.toString()
+    }
 
     private fun startStopService() {
         if (!isServiceRunning) {
@@ -132,8 +143,25 @@ private fun getCurrentTime():String {
             activity?.stopService(Intent(activity, LocationService::class.java))
             binding.fPlay.setImageResource(R.drawable.ic_play)
             timer?.cancel()
+            DialogManager.showSaveDialog(requireContext(),
+                getTrackItem(),
+                object : DialogManager.Listener {
+                override fun onClick() {
+                    showToast("Track saved!")
+                }
+            })
         }
         isServiceRunning = !isServiceRunning
+    }
+    private fun getTrackItem(): TrackItem {
+        return TrackItem(
+            null,
+            getCurrentTime(),
+            TimeUtils.getDate(),
+            String.format("%.1f", locationModel?.distance?.div(1000) ?: 0),
+            getAverageSpeed(locationModel?.distance ?: 0.0f),
+            geoPointsToString(locationModel?.geoPointsList ?: listOf())
+        )
     }
 
     private fun startLocService() {
@@ -167,7 +195,7 @@ private fun getCurrentTime():String {
             activity as AppCompatActivity,
             activity?.getSharedPreferences("osm_pref", Context.MODE_PRIVATE)
         )
-        Configuration.getInstance().userAgentValue = BuildConfig.APPLICATION_ID
+        Configuration.getInstance().userAgentValue = BuildConfig.BUILD_TYPE // исходное APPLICATION_ID выяснить причину ошибки!!!
     }
 
     private fun initOsm() = with(binding) {
