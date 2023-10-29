@@ -79,5 +79,18 @@
         tools:layout_editor_absoluteX="227dp"
         tools:layout_editor_absoluteY="54dp" />
 
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fCentr"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:clickable="true"
+        android:src="@drawable/baseline_my_location_24"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+
+        android:focusable="true" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

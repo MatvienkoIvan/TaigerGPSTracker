@@ -22,6 +22,7 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.activityViewModels
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.preference.PreferenceManager
 import com.matvienko.taigergpstracker.DB.TrackItem
 import com.matvienko.taigergpstracker.MainApp
 import com.matvienko.taigergpstracker.MainViewModel
@@ -45,11 +46,12 @@ import java.util.TimerTask
 
 class FragmentBlank : Fragment() {
     private var locationModel: LocationModel? = null
-    private var firstStart = false
+    private var firstStart = true
     private var pl: Polyline? = null
     private var isServiceRunning = false
     private var timer: Timer? = null
     private var startTime = 0L
+    private lateinit var mLocOverlay : MyLocationNewOverlay
     private lateinit var pLauncher: ActivityResultLauncher<Array<String>>
     private lateinit var binding: FragmentMainBinding
     private val model: MainViewModel by activityViewModels {
@@ -81,26 +83,37 @@ class FragmentBlank : Fragment() {
     private fun setOnClicks () = with (binding){
         val listener = onClicks()
         fPlay.setOnClickListener(listener)
+        fCentr.setOnClickListener(listener)
     }
 
     private fun onClicks(): View.OnClickListener {
         return View.OnClickListener {
             when(it.id){
                 R.id.fPlay -> startStopService()
+                R.id.fCentr -> centerMap()
 
             }
         }
     }
+    private fun centerMap() {
+        binding.map.controller.animateTo(mLocOverlay.myLocation)
+        mLocOverlay.enableFollowLocation()
+    }
+
+
     @SuppressLint("SetTextI18n")
     private fun locationUpdates() = with(binding){
         model.locationUpdates.observe(viewLifecycleOwner){
 
-
-//            val distance = "Distance: ${String.format("%.1f", it.distance)} m"
 //            val velocity = "Velocity: ${String.format("%.1f", 3.6f* it.velocity)} km/h"
+//            val distance = "Distance: ${String.format("%.1f", it.distance)} m"
+
+            val velocity = "Velocity: ${String.format("%.1f", 3.6f* it.velocity)} km/h"
+
 //            val aVelocity = " Average Velocity: ${getAverageSpeed(it.distance)} km/h"
             tvDistance.text = "Distance: ${String.format("%.1f", it.distance)} m"
-            tvVelocity.text = "Velocity: ${String.format("%.1f", 3.6f* it.velocity)} km/h"
+//            tvVelocity.text = "Velocity: ${String.format("%.1f", 3.6f* it.velocity)} km/h"
+            tvVelocity.text = velocity
             tvAverageSpeed.text = " Average Velocity: ${getAverageSpeed(it.distance)} km/h"
             locationModel = it
             updatePolyLine(it.geoPointsList)
@@ -194,11 +207,10 @@ private fun getCurrentTime():String {
         }
     }
 
-
-
     override fun onResume() {
         super.onResume()
         checkLocPermission()
+        firstStart = true
     }
 
     private fun settingsOsm() {
@@ -211,16 +223,20 @@ private fun getCurrentTime():String {
 
     private fun initOsm() = with(binding) {
         pl = Polyline()
-        pl?.outlinePaint?.color = Color.BLUE
+        pl?.outlinePaint?.color = Color.parseColor(
+            PreferenceManager.getDefaultSharedPreferences(requireContext())
+                .getString("update_color_key", "FF6600FF")
+        )
         map.controller.setZoom(20.0)
         val mLocProvider = GpsMyLocationProvider(activity)
-        val mLocOverlay = MyLocationNewOverlay(mLocProvider, map)
+        mLocOverlay = MyLocationNewOverlay(mLocProvider, map)
         mLocOverlay.enableMyLocation()
         mLocOverlay.enableFollowLocation()
         mLocOverlay.runOnFirstFix {
             map.overlays.clear()
-            map.overlays.add(mLocOverlay)
             map.overlays.add(pl)
+            map.overlays.add(mLocOverlay)
+
         }
     }
     private fun registerPermission() {
@@ -309,7 +325,7 @@ private fun checkLocationEnabled(){
     }
 
     private fun addPoint (list: List <GeoPoint>){
-        pl?.addPoint(list[list.size - 1])
+      if (list.isNotEmpty()) pl?.addPoint(list[list.size - 1])
     }
 
     private fun fillPolyLine (list: List<GeoPoint>){

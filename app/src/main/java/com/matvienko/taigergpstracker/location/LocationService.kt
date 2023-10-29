@@ -20,6 +20,7 @@ import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.preference.PreferenceManager
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -36,6 +37,8 @@ class LocationService : Service (){
     private lateinit var locProvider: FusedLocationProviderClient
     private lateinit var locRequest: LocationRequest
     private lateinit var geoPointsList: ArrayList <GeoPoint>
+    private  var isDebug = true // отладка на на эмуляторе true, для реального устройства false
+
     override fun onBind(p0: Intent?): IBinder? {
         return null
     }
@@ -64,11 +67,10 @@ class LocationService : Service (){
             super.onLocationResult(lResult)
             val currentLocation = lResult.lastLocation
             if (lastLocation != null && currentLocation != null) {
-//                if (currentLocation.speed > 0.2)
+                if(currentLocation.speed > 0.4 || isDebug) {
                     distance += lastLocation?.distanceTo(currentLocation)!!
-                geoPointsList.add(GeoPoint
-                    (currentLocation.latitude, currentLocation.longitude))
-                lastLocation = currentLocation
+                    geoPointsList.add(GeoPoint(currentLocation.latitude, currentLocation.longitude))
+                }
                 val locModel = LocationModel(
                     currentLocation.speed,
                     distance,
@@ -77,7 +79,6 @@ class LocationService : Service (){
                 sendLocData(locModel)
             }
             lastLocation = currentLocation
-//            Log.d("MyLog", "Distance: $distance")
         }
     }
 
@@ -108,7 +109,7 @@ class LocationService : Service (){
         val notification = NotificationCompat.Builder(
             this,
             CHANNEL_ID
-        ).setSmallIcon(R.mipmap.ic_launcher)
+        ).setSmallIcon(R.drawable.start_pos)
             .setContentTitle("Tracker Running")
             .setContentIntent(pIntent).build()
         startForeground(99, notification)
@@ -116,9 +117,12 @@ class LocationService : Service (){
     }
 
     private fun initLocation(){
+        val updateInterval = PreferenceManager.getDefaultSharedPreferences(
+            this
+        ).getString("update_time_key", "3000")?.toLong() ?: 3000
         locRequest = LocationRequest.create()
-        locRequest.interval = 5000
-        locRequest.fastestInterval = 5000
+        locRequest.interval = updateInterval
+        locRequest.fastestInterval = updateInterval
         locRequest.priority = PRIORITY_HIGH_ACCURACY
         locProvider = LocationServices.getFusedLocationProviderClient(baseContext)
 
