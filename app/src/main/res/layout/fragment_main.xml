@@ -27,7 +27,9 @@
         android:clickable="true"
         android:src="@drawable/baseline_my_location_24"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+
+        android:focusable="true" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fPlay"
@@ -38,7 +40,9 @@
         android:clickable="true"
         android:src="@drawable/ic_play"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/fCentr" />
+        app:layout_constraintTop_toBottomOf="@+id/fCentr"
+
+        android:focusable="true" />
 <!--    <com.google.android.material.floatingactionbutton.FloatingActionButton-->
 <!--        android:id="@+id/fStop"-->
 <!--        android:layout_width="wrap_content"-->
@@ -51,7 +55,7 @@
 <!--        app:layout_constraintTop_toBottomOf="@+id/fPlay" />-->
 
     <TextView
-        android:id="@+id/tvTime"
+        android:id="@+id/tvTimeSave"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
@@ -60,7 +64,7 @@
         android:paddingStart="5dp"
         android:paddingEnd="5dp"
         android:shadowColor="#80BA68C8"
-        android:text="Time: 00:00:00"
+        android:text="@string/time_00_00_00"
         android:textColor="#000000"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -75,10 +79,10 @@
         android:paddingStart="5dp"
         android:paddingEnd="5dp"
         android:shadowColor="#80BA68C8"
-        android:text="Average velocity: 3,5 km/h"
+        android:text="@string/average_velocity_0_0_km_h"
         android:textColor="#000000"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tvTime" />
+        app:layout_constraintTop_toBottomOf="@+id/tvTimeSave" />
 
     <TextView
         android:id="@+id/tvVelocity"
@@ -90,7 +94,7 @@
         android:paddingStart="5dp"
         android:paddingEnd="5dp"
         android:shadowColor="#80BA68C8"
-        android:text="Velocity: 3,5 km/h"
+        android:text="@string/velocity_0_0_km_h"
         android:textColor="#000000"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tvAverageSpeed" />
@@ -105,7 +109,7 @@
         android:paddingStart="5dp"
         android:paddingEnd="5dp"
         android:shadowColor="#80BA68C8"
-        android:text="Dictance 16,5 km"
+        android:text="@string/distance_0_0_km"
         android:textColor="#000000"
         android:textSize="24sp"
         app:layout_constraintStart_toStartOf="parent"

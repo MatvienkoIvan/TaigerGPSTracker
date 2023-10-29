@@ -54,21 +54,22 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
 
         val trackColor = pref?.getString("update_color_key", "FF6600FF")
-        // Проверка значения trackColor
 
-        Log.d("ColorValue", "Track Color: $trackColor")
-
-        try {
-            // Попытка парсинга цвета
-            val colorInt = Color.parseColor(trackColor)
-            // Используйте colorInt в вашем коде
-        } catch (e: IllegalArgumentException) {
-            // Ловим ошибку, если цвет не может быть распознан
-            Log.e("ColorError", "Error parsing color: $trackColor")
+        if (trackColor != null && trackColor.isNotEmpty()) {
+            try {
+                val colorInt = Color.parseColor(trackColor)
+                // Используйте colorInt в вашем коде
+            } catch (e: IllegalArgumentException) {
+                Log.e("ColorError", "Error parsing color: $trackColor")
+                // По умолчанию установите цвет на что-то, что вы уверены, что будет работать
+                val defaultColor = Color.parseColor("#FF0000") // Например, красный цвет
+                // Используйте defaultColor в вашем коде
+            }
+        } else {
+            Log.e("ColorError", "Empty or null color string")
             // По умолчанию установите цвет на что-то, что вы уверены, что будет работать
             val defaultColor = Color.parseColor("#FF0000") // Например, красный цвет
             // Используйте defaultColor в вашем коде
-            colorPref.icon?.setTint(Color.parseColor(trackColor))
         }
     }
 }

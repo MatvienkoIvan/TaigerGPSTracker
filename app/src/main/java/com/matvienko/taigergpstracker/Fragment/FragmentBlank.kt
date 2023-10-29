@@ -1,6 +1,7 @@
 package com.matvienko.taigergpstracker.Fragment
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -22,6 +23,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.activityViewModels
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.matvienko.taigergpstracker.DB.TrackItem
+import com.matvienko.taigergpstracker.MainApp
 import com.matvienko.taigergpstracker.MainViewModel
 import com.matvienko.taigergpstracker.R
 import com.matvienko.taigergpstracker.databinding.FragmentMainBinding
@@ -43,14 +45,18 @@ import java.util.TimerTask
 
 class FragmentBlank : Fragment() {
     private var locationModel: LocationModel? = null
-    private var firstStart = true
+    private var firstStart = false
     private var pl: Polyline? = null
     private var isServiceRunning = false
     private var timer: Timer? = null
     private var startTime = 0L
     private lateinit var pLauncher: ActivityResultLauncher<Array<String>>
     private lateinit var binding: FragmentMainBinding
-    private val model: MainViewModel by activityViewModels()
+    private val model: MainViewModel by activityViewModels {
+        MainViewModel.ViewModelFactory(
+            (requireContext().applicationContext as MainApp).database)
+    }
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -70,6 +76,7 @@ class FragmentBlank : Fragment() {
         registerLocReceiver()
         locationUpdates()
 
+
     }
     private fun setOnClicks () = with (binding){
         val listener = onClicks()
@@ -84,25 +91,27 @@ class FragmentBlank : Fragment() {
             }
         }
     }
+    @SuppressLint("SetTextI18n")
     private fun locationUpdates() = with(binding){
         model.locationUpdates.observe(viewLifecycleOwner){
-            val distance = "Distance: ${String.format("%.1f", it.distance)} m"
-            val velocity = "Velocity: ${String.format("%.1f", 3.6f* it.velocity)} km/h"
-            val aVelocity = " Average Velocity: ${getAverageSpeed(it.distance)} km/h"
-            tvDistance.text = distance
-            tvVelocity.text = velocity
-            tvAverageSpeed.text = aVelocity
-            locationModel = it
-//            trackItem = TrackItem(
 
-//            )
+
+//            val distance = "Distance: ${String.format("%.1f", it.distance)} m"
+//            val velocity = "Velocity: ${String.format("%.1f", 3.6f* it.velocity)} km/h"
+//            val aVelocity = " Average Velocity: ${getAverageSpeed(it.distance)} km/h"
+            tvDistance.text = "Distance: ${String.format("%.1f", it.distance)} m"
+            tvVelocity.text = "Velocity: ${String.format("%.1f", 3.6f* it.velocity)} km/h"
+            tvAverageSpeed.text = " Average Velocity: ${getAverageSpeed(it.distance)} km/h"
+            locationModel = it
             updatePolyLine(it.geoPointsList)
         }
+
+
     }
 
     private fun updateTime(){
         model.timeData.observe(viewLifecycleOwner){
-            binding.tvTime.text = it //tvTime - это textView который мы добавили на слое.
+            binding.tvTimeSave.text = it //tvTime - это textView который мы добавили на слое.
         }
     }
 
@@ -143,11 +152,13 @@ private fun getCurrentTime():String {
             activity?.stopService(Intent(activity, LocationService::class.java))
             binding.fPlay.setImageResource(R.drawable.ic_play)
             timer?.cancel()
+            val track = getTrackItem()
             DialogManager.showSaveDialog(requireContext(),
-                getTrackItem(),
+                track,
                 object : DialogManager.Listener {
                 override fun onClick() {
                     showToast("Track saved!")
+                    model.insertTrack(track)
                 }
             })
         }
@@ -158,8 +169,8 @@ private fun getCurrentTime():String {
             null,
             getCurrentTime(),
             TimeUtils.getDate(),
-            String.format("%.1f", locationModel?.distance?.div(1000) ?: 0),
-            getAverageSpeed(locationModel?.distance ?: 0.0f),
+            String.format("%.1f", locationModel?.distance?.div(1000) ?: 0.0f),
+            getAverageSpeed(locationModel?.velocity ?: 0.0f),
             geoPointsToString(locationModel?.geoPointsList ?: listOf())
         )
     }

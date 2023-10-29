@@ -5,6 +5,8 @@
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle" > true </item>
+        <item name="colorPrimaryVariant" > @color/black </item>
+        <item name="android:statusBarColor" > @color/black </item>
     </style>
 
     <style name="Theme.TaigerGPSTracker" parent="Base.Theme.TaigerGPSTracker" />

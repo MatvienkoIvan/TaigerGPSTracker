@@ -10,4 +10,14 @@
     <string name="update_color_summary">Choose Color</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="location_disabled_massage">Do you want enable GPS?</string>
+    <string name="todo">TODO</string>
+    <string name="time">Time :</string>
+    <string name="_0_0_km">0.0 km</string>
+    <string name="_12_10_2023_13_00">12/10/2023 13:00</string>
+    <string name="speed">Speed :</string>
+    <string name="distance_0_0_km">Distance 0,0 km</string>
+    <string name="velocity_0_0_km_h">Velocity: 0,0 km/h</string>
+    <string name="data_on_track_view"> Data: 12/12/2023/ 12: 00 </string>
+    <string name="average_velocity_0_0_km_h">Average velocity: 0,0 km/h</string>
+    <string name="time_00_00_00">Time: 00:00:00</string>
 </resources>
